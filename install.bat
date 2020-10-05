@@ -1,0 +1,1 @@
+Powershell.exe -executionpolicy Bypass -File "\\school.local\share$\choco\files\install-command.ps1"
