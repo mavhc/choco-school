@@ -16,3 +16,7 @@ Create xml files (some examples provided) to config which computers get which pa
 3. Put the ps1 and bat files in files folder
 
 4. Make the computers install install.bat on startup
+
+### Updating the local repostory
+
+```choco-outdated.ps1``` is a script to be run by the Administrator, it compares the version numbers of nupkg files in your local repo to those on the chocolatey website, and if there's a newer version, downloads it to the working directory. The Administrator can then copy the new nupkg files to the local repo.
