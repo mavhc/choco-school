@@ -4,13 +4,13 @@
 # Thanks to bog for this function
 function Get-NUPKG-Version {
   Param(
-    [Parameter(Mandatory=$true, Position=0)]
+    [Parameter(Mandatory = $true, Position = 0)]
     [string] $fullpath
   )
   
   Add-Type -assembly "system.io.compression.filesystem"
   $zip = [io.compression.zipfile]::OpenRead($fullpath)
-  $file = $zip.Entries | where-object { $_.Name -Like "*.nuspec"}
+  $file = $zip.Entries | where-object { $_.Name -Like "*.nuspec" }
   $stream = $file.Open()
 
   $reader = New-Object IO.StreamReader($stream)
@@ -26,12 +26,12 @@ function Get-NUPKG-Version {
 }
 function Get-NUPKG-Name {
   Param(
-    [Parameter(Mandatory=$true, Position=0)]
+    [Parameter(Mandatory = $true, Position = 0)]
     [string] $fullpath
   )
   Add-Type -assembly "system.io.compression.filesystem"
   $zip = [io.compression.zipfile]::OpenRead($fullpath)
-  $file = $zip.Entries | where-object { $_.Name -Like "*.nuspec"}
+  $file = $zip.Entries | where-object { $_.Name -Like "*.nuspec" }
   $stream = $file.Open()
 
   $reader = New-Object IO.StreamReader($stream)
@@ -58,28 +58,31 @@ $outputUnsorted = Get-ChildItem -path \\server\share$\choco\packages -Recurse -A
 $output = ($outputUnsorted | Sort-Object -property @{ Expression = { (Get-NUPKG-Name($_.FullName)) } }, @{ Expression = { [version] (Get-NUPKG-Version($_.FullName)) } } )
 
 # checks package with next package on list, if different then latest version in local repo, compare to community repo, download new versions
-for ($i=0; $i -lt $output.length; $i++) {
-    $package = $output[$i]
-    Write-Output "Checking $package"
+for ($i = 0; $i -lt $output.count; $i++) {
+  $package = $output[$i]
+  Write-Output "Checking $package"
     
-    $packageName = Get-NUPKG-Name($package.Fullname)
+  $packageName = Get-NUPKG-Name($package.Fullname)
     
-    if ($i -lt $output.Length-1) {
-        $nextPackageName = Get-NUPKG-Name($output[$i+1].FullName)
-        if ($nextPackageName -ne $packageName ) {
-            Write-Output "latest local version $package"
+  if ($i -lt $output.count - 1) {
+    $nextPackageName = Get-NUPKG-Name($output[$i + 1].FullName)
+  }
+  else {
+    $nextPackageName = "lastpackage"
+  }
+  if ($nextPackageName -ne $packageName ) {
+    Write-Output "latest local version $package"
             
-            $latestPackage = choco info $packageName --limit-output
-            Write-Output "Comparing $packageName : new version $latestPackage to old version $package"
+    $latestPackage = choco info $packageName --limit-output
+    Write-Output "Comparing $packageName : new version $latestPackage to old version $package"
             
-            $a = $latestPackage.split("|")
-            $newFileName = $latestPackage.Replace("|",".") + ".nupkg"
+    $a = $latestPackage.split("|")
+    $newFileName = $latestPackage.Replace("|", ".") + ".nupkg"
             
-            if ($newFilename -ne $package) {
-                $b = "https://chocolatey.org/api/v2/package/$packageName/$($a[1])"
-                Write-Output "Downloading $b"
-                Invoke-WebRequest -uri $b -OutFile "$($a[0]).$($a[1]).nupkg"
-            }
-        }
+    if ($newFilename -ne $package) {
+      $b = "https://chocolatey.org/api/v2/package/$packageName/$($a[1])"
+      Write-Output "Downloading $b"
+      Invoke-WebRequest -uri $b -OutFile "$($a[0]).$($a[1]).nupkg"
     }
+  }
 }
