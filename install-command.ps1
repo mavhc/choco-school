@@ -3,7 +3,7 @@ choco source remove --name="'chocolatey'"
 choco source add --name="'internal_server'" --source="\\school.local\share$\choco\packages" --priority="'1'"
 choco feature enable -n allowGlobalConfirmation
 choco feature enable -n useRememberedArgumentsForUpgrades
-
+ChildItem C:\ProgramData\chocolatey\lib\*\*.nu* | where Length -eq 0 | Del
 
 $GotTask         = (&schtasks /query /tn choco-installer) 2> $null
 
